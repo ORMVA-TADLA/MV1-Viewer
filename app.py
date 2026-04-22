@@ -12,9 +12,18 @@ st.header("📊 MV1 Data Viewer", divider="rainbow", anchor=False)
 # Function to load data (caches it so it doesn't reload on every interaction)
 @st.cache_data
 def load_data(filename):
-    if not os.path.exists(filename):
-        raise FileNotFoundError
-    return pd.read_csv(filename)
+    # 1. Define a dictionary mapping column names to their data types
+    data_types = {
+        "Heure départ": float,
+        "Heure Fin": float,
+        "Durée": float,
+    }
+
+    # 2. List your date columns here
+    date_columns = ["Date départ", "Date Fin"]
+
+    # 3. Pass both arguments to read_csv
+    return pd.read_csv(filename, dtype=data_types, parse_dates=date_columns)
 
 
 try:
@@ -66,7 +75,16 @@ try:
         filtered_df,
         use_container_width=True,
         hide_index=True,
-        height=600,  # Increased height slightly for wide layouts
+        height=600,
+        column_config={
+            # Force these specific columns to take up more space
+            "Date départ": st.column_config.DatetimeColumn(
+                width=140, format="YYYY MMMM DD - HH:mm"
+            ),
+            "Date Fin": st.column_config.DatetimeColumn(
+                width=140, format="YYYY MMMM DD - HH:mm"
+            ),
+        },
     )
 
 except FileNotFoundError:
