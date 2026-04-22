@@ -3,7 +3,7 @@ import os
 
 
 def xlsx_to_csv_remove_and_rename_columns(
-    input_xlsx, output_csv, columns_to_remove, columns_to_rename
+    input_xlsx, output_csv, columns_to_remove, columns_to_rename, agriculteur_xlsx=None
 ):
     """
     Converts an Excel (.xlsx) file to a CSV (.csv) file, removes specified columns,
@@ -32,6 +32,24 @@ def xlsx_to_csv_remove_and_rename_columns(
             df = df.rename(columns=columns_to_rename)
             print("Renamed columns based on your mapping.")
 
+        if agriculteur_xlsx and os.path.exists(agriculteur_xlsx):
+            agr_df = pd.read_excel(agriculteur_xlsx, usecols=["CodeClient", "npagr"])
+            agr_map = dict(zip(agr_df["CodeClient"], agr_df["npagr"]))
+            code_client_col = columns_to_rename.get("CodeClient", "CodeClient")
+            df["Full Name"] = df[code_client_col].map(agr_map)
+            print("Added 'Full Name' column from AGRICULTEUR.xlsx.")
+        elif agriculteur_xlsx:
+            print(
+                f"Warning: AGRICULTEUR file '{agriculteur_xlsx}' not found. Skipping 'full name' column."
+            )
+
+        cols = list(df.columns)
+        if "Code Parcelle" in cols and "Full Name" in cols:
+            cols.remove("Full Name")
+            code_parcelle_idx = cols.index("Code Parcelle")
+            cols.insert(code_parcelle_idx + 1, "Full Name")
+            df = df[cols]
+
         # Convert and save to CSV
         df.to_csv(output_csv, index=False)
 
@@ -51,6 +69,7 @@ if __name__ == "__main__":
     cols_to_drop = [
         "N°",
         "AGR",
+        "CDA",
         "numtrd",
         "typem",
         "Trimestre",
@@ -81,7 +100,10 @@ if __name__ == "__main__":
         "OrdreTaxa": "Ordre Taxa",
     }
 
+    # 4. Specify the path to the 'Agriculteur.xlsx' file if needed
+    agriculteur_file = "AGRICULTEUR.xlsx"
+
     # Run the function with both lists
     xlsx_to_csv_remove_and_rename_columns(
-        input_file, output_file, cols_to_drop, cols_to_rename
+        input_file, output_file, cols_to_drop, cols_to_rename, agriculteur_file
     )
