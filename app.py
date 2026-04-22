@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Set the page layout to wide for better data viewing
-st.set_page_config(page_title="Data Viewer", layout="wide")
+st.set_page_config(page_title="MV1 Data Viewer", layout="wide")
 
 # App Title
 st.title("📊 MV1 Data Viewer")
